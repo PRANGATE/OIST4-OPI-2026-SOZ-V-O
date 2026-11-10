@@ -136,7 +136,6 @@ function removeEntry(id) {
     return;
   }
   renderEntries();
-renderStatistics();
   renderStatistics();
   setMessage("Запись удалена.", "success");
 }
@@ -259,3 +258,4 @@ $("period").addEventListener("change", renderStatistics);
 loadEntries();
 resetForm();
 renderEntries();
+renderStatistics();
