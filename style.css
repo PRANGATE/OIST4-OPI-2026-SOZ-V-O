@@ -72,18 +72,17 @@ input:focus, select:focus, textarea:focus { outline: 3px solid #356b5520; border
   .entry-actions .button { flex: 1; }
 }
 
-.chart-bars { display: flex; align-items: end; gap: 8px; min-height: 190px; padding: 18px 8px 4px; overflow-x: auto; border-bottom: 1px solid var(--line); }
-.chart-item { display: grid; grid-template-rows: 18px 130px 20px; justify-items: center; gap: 5px; min-width: 34px; flex: 1; color: var(--muted); font-size: .72rem; }
-.chart-item small { font-size: .68rem; }
-.chart-bar { width: min(100%, 24px); align-self: end; min-height: 5px; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, #79a88d, var(--green)); }
+.chart-bars { display: flex; align-items: end; gap: 8px; min-height: 190px; padding: 18px 8px 4px; overflow-x: auto; border-bottom: 1px solid var(--line); } 
+.chart-item { display: grid; grid-template-rows: 18px 130px 20px; justify-items: center; gap: 5px; min-width: 34px; flex: 1; color: var(--muted); font-size: .72rem; } 
+.chart-item small { font-size: .68rem; } 
+.chart-bar { width: min(100%, 24px); align-self: end; min-height: 5px; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, #79a88d, var(--green)); } 
 
-.progress-track { height: 12px; margin: 10px 0; overflow: hidden; border-radius: 999px; background: var(--mint); }
-.progress-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #79a88d, var(--green)); transition: width .2s ease; }
-.goal-progress small { color: var(--muted); }
-
-.settings-divider { margin: 28px 0; border: 0; border-top: 1px solid var(--line); }
-.reminder-form { grid-template-columns: minmax(180px, 240px) minmax(180px, 240px) auto; align-items: end; }
-.reminder-toggle { display: flex; align-items: center; gap: 9px; min-height: 44px; }
-.reminder-toggle input { width: 18px; min-height: 18px; }
-.hint { margin: 12px 0 0; color: var(--muted); font-size: .82rem; }
+.progress-track { height: 12px; margin: 10px 0; overflow: hidden; border-radius: 999px; background: var(--mint); } 
+.progress-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #79a88d, var(--green)); transition: width .2s ease; } 
+.goal-progress small { color: var(--muted); } 
+.settings-divider { margin: 28px 0; border: 0; border-top: 1px solid var(--line); } 
+.reminder-form { grid-template-columns: minmax(180px, 240px) minmax(180px, 240px) auto; align-items: end; } 
+.reminder-toggle { display: flex; align-items: center; gap: 9px; min-height: 44px; } 
+.reminder-toggle input { width: 18px; min-height: 18px; } 
+.hint { margin: 12px 0 0; color: var(--muted); font-size: .82rem; } 
 @media (max-width: 650px) { .reminder-form { grid-template-columns: 1fr; } }

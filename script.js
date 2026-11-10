@@ -190,8 +190,6 @@ $("cancelEdit").addEventListener("click", () => {
   setMessage("Редактирование отменено.");
 });
 
-
-
 const GOAL_KEY = "sleep-diary.goal-hours.v1";
 let goalHours = 8;
 
@@ -252,7 +250,6 @@ $("goalForm").addEventListener("submit", (event) => {
   renderGoalProgress();
   setMessage("Цель сна сохранена.", "success");
 });
-
 
 const REMINDER_KEY = "sleep-diary.reminder.v1";
 let reminderSettings = { enabled: false, time: "22:30" };
@@ -390,7 +387,6 @@ function renderStatistics() {
 }
 
 $("period").addEventListener("change", renderStatistics);
-
 
 function exportCsv() {
   if (!entries.length) {
