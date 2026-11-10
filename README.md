@@ -26,14 +26,21 @@
 - `style.css` — адаптивное оформление.
 - `script.js` — логика приложения и локальное хранилище.
 - `.github/workflows/ci.yml` — автоматическая проверка при push и Pull Request.
-
-## Разработка
-
-Работа ведётся через feature-ветки и Pull Requests. Перед объединением выполняется self-review. Подробности — в [DEVELOPMENT.md](DEVELOPMENT.md).
+- `database/schema.sql` — нормализованная схема SQLite.
+- `database/seed_data.sql` — демонстрационные данные.
+- `database/normalization.md` — обоснование нормализации до 3NF.
+- `docs/database/er_diagram.svg` — ER-диаграмма.
+- `docs/database/er_diagram.puml` — исходник диаграммы PlantUML.
 
 ## Материалы лабораторных работ
 
 - [План проекта (лабораторная работа №2)](PLAN_PROJECT.md)
+- [База данных и нормализация (лабораторная работа №4)](database/normalization.md)
+- [ER-диаграмма SVG](docs/database/er_diagram.svg)
 - [Задачи проекта (Issues)](https://github.com/PRANGATE/OIST4-OPI-2026-SOZ-V-O/issues)
 - [Pull Requests](https://github.com/PRANGATE/OIST4-OPI-2026-SOZ-V-O/pulls)
 - [GitHub Actions](https://github.com/PRANGATE/OIST4-OPI-2026-SOZ-V-O/actions)
+
+## Разработка
+
+Работа ведётся через feature-ветки и Pull Requests. Перед объединением выполняется self-review. Подробности — в [DEVELOPMENT.md](DEVELOPMENT.md).

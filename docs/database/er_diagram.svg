@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="650" viewBox="0 0 1120 650" role="img" aria-labelledby="title desc">
+<title id="title">ER-диаграмма базы данных Дневник сна</title>
+<desc id="desc">Две независимые сущности: записи о сне и настройки приложения.</desc>
+<defs>
+  <style>
+    .bg{fill:#f5f8f5}.card{fill:#fff;stroke:#356b55;stroke-width:2}
+    .head{fill:#eaf2ec}.title{font:700 22px 'Segoe UI',Arial,sans-serif;fill:#244d3b}
+    .field{font:16px 'Segoe UI',Arial,sans-serif;fill:#20352d}
+    .meta{font:13px 'Segoe UI',Arial,sans-serif;fill:#718078}
+    .note{fill:#fffaf0;stroke:#c7a65b;stroke-width:1.5}
+    .noteText{font:14px 'Segoe UI',Arial,sans-serif;fill:#574a2e}
+  </style>
+</defs>
+<rect class="bg" width="1120" height="650"/>
+<text x="560" y="48" text-anchor="middle" class="title" font-size="28">Дневник сна — ER-модель</text>
+<text x="560" y="76" text-anchor="middle" class="meta">SQLite · нормализация до третьей нормальной формы</text>
+
+<rect x="85" y="125" width="455" height="390" rx="12" class="card"/>
+<path d="M97 125h431a12 12 0 0 1 12 12v48H85v-48a12 12 0 0 1 12-12z" class="head"/>
+<text x="110" y="162" class="title">sleep_entries</text>
+<text x="110" y="207" class="field">🔑 sleep_entry_id : INTEGER — PK</text>
+<text x="110" y="247" class="field">sleep_date : TEXT</text>
+<text x="110" y="287" class="field">bed_time : TEXT</text>
+<text x="110" y="327" class="field">wake_time : TEXT</text>
+<text x="110" y="367" class="field">sleep_quality : INTEGER (1–5)</text>
+<text x="110" y="407" class="field">notes : TEXT (до 500 символов)</text>
+<text x="110" y="447" class="field">created_at : TEXT</text>
+<text x="110" y="487" class="field">updated_at : TEXT</text>
+
+<rect x="580" y="125" width="455" height="310" rx="12" class="card"/>
+<path d="M592 125h431a12 12 0 0 1 12 12v48H580v-48a12 12 0 0 1 12-12z" class="head"/>
+<text x="605" y="162" class="title">app_settings</text>
+<text x="605" y="207" class="field">🔑 settings_id : INTEGER — PK (= 1)</text>
+<text x="605" y="247" class="field">target_sleep_minutes : INTEGER</text>
+<text x="605" y="287" class="field">reminder_enabled : INTEGER (0/1)</text>
+<text x="605" y="327" class="field">reminder_time : TEXT</text>
+<text x="605" y="367" class="field">updated_at : TEXT</text>
+
+<rect x="85" y="550" width="950" height="58" rx="8" class="note"/>
+<text x="105" y="574" class="noteText">Связь между таблицами не задаётся: записи сна и общие настройки — независимые данные</text>
+<text x="105" y="594" class="noteText">однопользовательской локальной версии. Длительность сна вычисляется, а не дублируется.</text>
+</svg>
