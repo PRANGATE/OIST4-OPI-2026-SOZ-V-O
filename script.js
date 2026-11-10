@@ -136,6 +136,8 @@ function removeEntry(id) {
     return;
   }
   renderEntries();
+renderStatistics();
+  renderStatistics();
   setMessage("Запись удалена.", "success");
 }
 
@@ -177,6 +179,7 @@ form.addEventListener("submit", (event) => {
     return;
   }
   renderEntries();
+  renderStatistics();
   resetForm();
   setMessage(wasEditing ? "Изменения сохранены." : "Запись о сне добавлена.", "success");
 });
@@ -185,6 +188,73 @@ $("cancelEdit").addEventListener("click", () => {
   resetForm();
   setMessage("Редактирование отменено.");
 });
+
+
+function renderStatistics() {
+  const days = Number($("period").value);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(today);
+  start.setDate(start.getDate() - (days - 1));
+  const filtered = entries.filter((entry) => {
+    const date = new Date(`${entry.date}T00:00:00`);
+    return date >= start && date <= today;
+  });
+  const totalMinutes = filtered.reduce((sum, entry) => sum + entry.duration, 0);
+  const averageMinutes = filtered.length ? Math.round(totalMinutes / filtered.length) : 0;
+  const averageQuality = filtered.length
+    ? (filtered.reduce((sum, entry) => sum + entry.quality, 0) / filtered.length).toFixed(1)
+    : "—";
+
+  const stats = $("stats");
+  stats.replaceChildren();
+  [
+    ["Средняя длительность", filtered.length ? formatDuration(averageMinutes) : "Нет данных"],
+    ["Среднее качество", filtered.length ? `${averageQuality} / 5` : "Нет данных"],
+    ["Количество записей", String(filtered.length)]
+  ].forEach(([label, value]) => {
+    const card = document.createElement("div");
+    card.className = "stat-card";
+    const caption = document.createElement("span");
+    caption.textContent = label;
+    const result = document.createElement("strong");
+    result.textContent = value;
+    card.append(caption, result);
+    stats.append(card);
+  });
+
+  const chart = $("chart");
+  chart.replaceChildren();
+  if (!filtered.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty-state";
+    empty.textContent = "За выбранный период записей нет. Добавьте записи, чтобы увидеть график.";
+    chart.append(empty);
+    return;
+  }
+  const heading = document.createElement("h3");
+  heading.textContent = "Продолжительность сна по дням";
+  chart.append(heading);
+  const bars = document.createElement("div");
+  bars.className = "chart-bars";
+  filtered.sort((a, b) => a.date.localeCompare(b.date)).forEach((entry) => {
+    const item = document.createElement("div");
+    item.className = "chart-item";
+    const value = document.createElement("small");
+    value.textContent = `${(entry.duration / 60).toFixed(1)} ч`;
+    const bar = document.createElement("div");
+    bar.className = "chart-bar";
+    bar.style.height = `${Math.max(8, Math.min(100, entry.duration / 960 * 100))}%`;
+    bar.title = `${entry.date}: ${formatDuration(entry.duration)}`;
+    const label = document.createElement("span");
+    label.textContent = new Date(`${entry.date}T12:00:00`).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
+    item.append(value, bar, label);
+    bars.append(item);
+  });
+  chart.append(bars);
+}
+
+$("period").addEventListener("change", renderStatistics);
 
 loadEntries();
 resetForm();
