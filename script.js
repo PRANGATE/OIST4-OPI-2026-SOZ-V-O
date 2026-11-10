@@ -137,6 +137,7 @@ function removeEntry(id) {
   }
   renderEntries();
   renderStatistics();
+  renderGoalProgress();
   setMessage("Запись удалена.", "success");
 }
 
@@ -179,6 +180,7 @@ form.addEventListener("submit", (event) => {
   }
   renderEntries();
   renderStatistics();
+  renderGoalProgress();
   resetForm();
   setMessage(wasEditing ? "Изменения сохранены." : "Запись о сне добавлена.", "success");
 });
@@ -188,6 +190,68 @@ $("cancelEdit").addEventListener("click", () => {
   setMessage("Редактирование отменено.");
 });
 
+
+
+const GOAL_KEY = "sleep-diary.goal-hours.v1";
+let goalHours = 8;
+
+function loadGoal() {
+  try {
+    const stored = Number(localStorage.getItem(GOAL_KEY));
+    if (Number.isFinite(stored) && stored >= 1 && stored <= 16) goalHours = stored;
+  } catch (error) {
+    setMessage("Не удалось прочитать сохранённую цель сна.", "error");
+  }
+  $("goalHours").value = String(goalHours);
+}
+
+function renderGoalProgress() {
+  const targetMinutes = goalHours * 60;
+  const latest = [...entries].sort((a, b) => b.date.localeCompare(a.date))[0];
+  const container = $("goalProgress");
+  container.replaceChildren();
+  const label = document.createElement("p");
+  label.textContent = latest
+    ? `Последняя запись: ${formatDuration(latest.duration)} из ${goalHours} ч`
+    : `Цель установлена: ${goalHours} ч. Добавьте запись, чтобы увидеть прогресс.`;
+  container.append(label);
+  if (!latest) return;
+  const percentage = Math.min(100, Math.round(latest.duration / targetMinutes * 100));
+  const track = document.createElement("div");
+  track.className = "progress-track";
+  track.setAttribute("role", "progressbar");
+  track.setAttribute("aria-label", "Достижение цели сна по последней записи");
+  track.setAttribute("aria-valuemin", "0");
+  track.setAttribute("aria-valuemax", "100");
+  track.setAttribute("aria-valuenow", String(percentage));
+  const fill = document.createElement("div");
+  fill.className = "progress-fill";
+  fill.style.width = `${percentage}%`;
+  track.append(fill);
+  const detail = document.createElement("small");
+  detail.textContent = percentage >= 100
+    ? "Цель достигнута или превышена."
+    : `Выполнено ${percentage}%. До цели осталось ${formatDuration(targetMinutes - latest.duration)}.`;
+  container.append(track, detail);
+}
+
+$("goalForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const value = Number($("goalHours").value);
+  if (!Number.isFinite(value) || value < 1 || value > 16 || value * 2 !== Math.round(value * 2)) {
+    setMessage("Цель должна быть от 1 до 16 часов с шагом 0,5 часа.", "error");
+    return;
+  }
+  try {
+    localStorage.setItem(GOAL_KEY, String(value));
+  } catch (error) {
+    setMessage("Не удалось сохранить цель в браузере.", "error");
+    return;
+  }
+  goalHours = value;
+  renderGoalProgress();
+  setMessage("Цель сна сохранена.", "success");
+});
 
 function renderStatistics() {
   const days = Number($("period").value);
@@ -256,6 +320,8 @@ function renderStatistics() {
 $("period").addEventListener("change", renderStatistics);
 
 loadEntries();
+loadGoal();
 resetForm();
 renderEntries();
 renderStatistics();
+renderGoalProgress();
