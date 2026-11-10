@@ -319,6 +319,33 @@ function renderStatistics() {
 
 $("period").addEventListener("change", renderStatistics);
 
+
+function exportCsv() {
+  if (!entries.length) {
+    setMessage("Нет записей для экспорта.", "error");
+    return;
+  }
+  const columns = ["Дата", "Время отхода ко сну", "Время пробуждения", "Продолжительность (мин)", "Качество (1–5)", "Заметки"];
+  const rows = entries
+    .slice()
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((entry) => [entry.date, entry.bedTime, entry.wakeTime, entry.duration, entry.quality, entry.notes || ""]);
+  const escapeCell = (value) => `"${String(value).replace(/"/g, '""')}"`;
+  const csv = [columns, ...rows].map((row) => row.map(escapeCell).join(";")).join("\r\n");
+  const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "sleep_diary.csv";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  setMessage("Файл sleep_diary.csv подготовлен для скачивания.", "success");
+}
+
+$("exportCsv").addEventListener("click", exportCsv);
+
 loadEntries();
 loadGoal();
 resetForm();
