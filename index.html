@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Дневник сна — учёт времени и качества сна, статистика и личные цели.">
+  <title>Дневник сна</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#" aria-label="Дневник сна — главная">Сон<span>•</span>Дневник</a>
+      <nav aria-label="Основная навигация">
+        <a href="#diary">Дневник</a>
+        <a href="#statistics">Статистика</a>
+        <a href="#settings">Настройки</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <section class="hero">
+      <p class="eyebrow">Вариант 25 · Sleep Diary</p>
+      <h1>Ваш сон — под контролем</h1>
+      <p>Записывайте отдых, замечайте закономерности и формируйте комфортный режим.</p>
+    </section>
+    <section id="diary" class="panel">
+      <div class="section-heading">
+        <div><p class="eyebrow">Ежедневные записи</p><h2>Дневник сна</h2></div>
+      </div>
+      <form id="sleepForm" class="sleep-form">
+        <label>Дата<input id="sleepDate" type="date" required></label>
+        <label>Отход ко сну<input id="bedTime" type="time" required></label>
+        <label>Пробуждение<input id="wakeTime" type="time" required></label>
+        <label>Качество сна
+          <select id="quality" required>
+            <option value="5">5 — Отлично</option><option value="4">4 — Хорошо</option>
+            <option value="3" selected>3 — Нормально</option><option value="2">2 — Плохо</option>
+            <option value="1">1 — Очень плохо</option>
+          </select>
+        </label>
+        <label class="wide">Заметки<textarea id="notes" rows="2" maxlength="500" placeholder="Как прошла ночь?"></textarea></label>
+        <div class="form-actions wide"><button class="button primary" type="submit">Сохранить запись</button><button class="button secondary" id="cancelEdit" type="button" hidden>Отменить</button></div>
+      </form>
+      <p id="formMessage" class="message" role="status" aria-live="polite"></p>
+      <div id="entries" class="entries" aria-live="polite"></div>
+    </section>
+    <section id="statistics" class="panel">
+      <div class="section-heading"><div><p class="eyebrow">Анализ отдыха</p><h2>Статистика</h2></div>
+        <label class="period-control">Период<select id="period"><option value="7">7 дней</option><option value="30">30 дней</option></select></label>
+      </div>
+      <div id="stats" class="stats-grid"></div>
+      <div id="chart" class="chart" aria-label="График продолжительности сна"></div>
+    </section>
+    <section id="settings" class="panel">
+      <p class="eyebrow">Персональные параметры</p><h2>Цель сна</h2>
+      <form id="goalForm" class="goal-form">
+        <label>Желаемая продолжительность, часов<input id="goalHours" type="number" min="1" max="16" step="0.5" value="8"></label>
+        <button class="button primary" type="submit">Сохранить цель</button>
+      </form>
+      <div id="goalProgress" class="goal-progress"></div>
+    </section>
+  </main>
+  <footer class="container footer">Дневник сна · Учебный проект · Вариант 25</footer>
+  <script src="script.js"></script>
+</body>
+</html>
