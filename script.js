@@ -137,6 +137,7 @@ function removeEntry(id) {
   }
   renderEntries();
   renderStatistics();
+  renderGoalProgress();
   setMessage("Запись удалена.", "success");
 }
 
@@ -179,6 +180,7 @@ form.addEventListener("submit", (event) => {
   }
   renderEntries();
   renderStatistics();
+  renderGoalProgress();
   resetForm();
   setMessage(wasEditing ? "Изменения сохранены." : "Запись о сне добавлена.", "success");
 });
@@ -188,6 +190,137 @@ $("cancelEdit").addEventListener("click", () => {
   setMessage("Редактирование отменено.");
 });
 
+const GOAL_KEY = "sleep-diary.goal-hours.v1";
+let goalHours = 8;
+
+function loadGoal() {
+  try {
+    const stored = Number(localStorage.getItem(GOAL_KEY));
+    if (Number.isFinite(stored) && stored >= 1 && stored <= 16) goalHours = stored;
+  } catch (error) {
+    setMessage("Не удалось прочитать сохранённую цель сна.", "error");
+  }
+  $("goalHours").value = String(goalHours);
+}
+
+function renderGoalProgress() {
+  const targetMinutes = goalHours * 60;
+  const latest = [...entries].sort((a, b) => b.date.localeCompare(a.date))[0];
+  const container = $("goalProgress");
+  container.replaceChildren();
+  const label = document.createElement("p");
+  label.textContent = latest
+    ? `Последняя запись: ${formatDuration(latest.duration)} из ${goalHours} ч`
+    : `Цель установлена: ${goalHours} ч. Добавьте запись, чтобы увидеть прогресс.`;
+  container.append(label);
+  if (!latest) return;
+  const percentage = Math.min(100, Math.round(latest.duration / targetMinutes * 100));
+  const track = document.createElement("div");
+  track.className = "progress-track";
+  track.setAttribute("role", "progressbar");
+  track.setAttribute("aria-label", "Достижение цели сна по последней записи");
+  track.setAttribute("aria-valuemin", "0");
+  track.setAttribute("aria-valuemax", "100");
+  track.setAttribute("aria-valuenow", String(percentage));
+  const fill = document.createElement("div");
+  fill.className = "progress-fill";
+  fill.style.width = `${percentage}%`;
+  track.append(fill);
+  const detail = document.createElement("small");
+  detail.textContent = percentage >= 100
+    ? "Цель достигнута или превышена."
+    : `Выполнено ${percentage}%. До цели осталось ${formatDuration(targetMinutes - latest.duration)}.`;
+  container.append(track, detail);
+}
+
+$("goalForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const value = Number($("goalHours").value);
+  if (!Number.isFinite(value) || value < 1 || value > 16 || value * 2 !== Math.round(value * 2)) {
+    setMessage("Цель должна быть от 1 до 16 часов с шагом 0,5 часа.", "error");
+    return;
+  }
+  try {
+    localStorage.setItem(GOAL_KEY, String(value));
+  } catch (error) {
+    setMessage("Не удалось сохранить цель в браузере.", "error");
+    return;
+  }
+  goalHours = value;
+  renderGoalProgress();
+  setMessage("Цель сна сохранена.", "success");
+});
+
+const REMINDER_KEY = "sleep-diary.reminder.v1";
+let reminderSettings = { enabled: false, time: "22:30" };
+
+function loadReminder() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(REMINDER_KEY) || "null");
+    if (saved && typeof saved.enabled === "boolean" && typeof saved.time === "string") {
+      const [hours, minutes] = saved.time.split(":").map(Number);
+      if (Number.isInteger(hours) && hours >= 0 && hours <= 23 && Number.isInteger(minutes) && minutes >= 0 && minutes <= 59) {
+        reminderSettings = saved;
+      }
+    }
+  } catch (error) {
+    setMessage("Не удалось прочитать настройки напоминания.", "error");
+  }
+  $("reminderTime").value = reminderSettings.time;
+  $("reminderEnabled").checked = reminderSettings.enabled;
+}
+
+$("reminderForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const time = $("reminderTime").value;
+  const enabled = $("reminderEnabled").checked;
+  if (!time) {
+    setMessage("Укажите время напоминания.", "error");
+    return;
+  }
+  if (enabled) {
+    if (!("Notification" in window)) {
+      setMessage("Этот браузер не поддерживает системные уведомления.", "error");
+      $("reminderEnabled").checked = false;
+      return;
+    }
+    if (Notification.permission === "default") {
+      await Notification.requestPermission();
+    }
+    if (Notification.permission !== "granted") {
+      setMessage("Разрешите уведомления браузера, чтобы получать напоминания.", "error");
+      $("reminderEnabled").checked = false;
+      return;
+    }
+  }
+  reminderSettings = { enabled, time };
+  try {
+    localStorage.setItem(REMINDER_KEY, JSON.stringify(reminderSettings));
+  } catch (error) {
+    setMessage("Не удалось сохранить настройки напоминания.", "error");
+    return;
+  }
+  setMessage(enabled ? `Напоминание установлено на ${time}.` : "Напоминание отключено.", "success");
+});
+
+function checkReminder() {
+  if (!reminderSettings.enabled || !("Notification" in window) || Notification.permission !== "granted") return;
+  const now = new Date();
+  const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const firedKey = `sleep-diary.reminder-fired.${today}`;
+  try {
+    if (currentTime === reminderSettings.time && localStorage.getItem(firedKey) !== "yes") {
+      new Notification("Время готовиться ко сну", {
+        body: "Пора завершать дела и готовиться к отдыху.",
+        tag: "sleep-diary-bedtime"
+      });
+      localStorage.setItem(firedKey, "yes");
+    }
+  } catch (error) {
+    setMessage("Не удалось показать или сохранить отметку напоминания.", "error");
+  }
+}
 
 function renderStatistics() {
   const days = Number($("period").value);
@@ -255,7 +388,37 @@ function renderStatistics() {
 
 $("period").addEventListener("change", renderStatistics);
 
+function exportCsv() {
+  if (!entries.length) {
+    setMessage("Нет записей для экспорта.", "error");
+    return;
+  }
+  const columns = ["Дата", "Время отхода ко сну", "Время пробуждения", "Продолжительность (мин)", "Качество (1–5)", "Заметки"];
+  const rows = entries
+    .slice()
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((entry) => [entry.date, entry.bedTime, entry.wakeTime, entry.duration, entry.quality, entry.notes || ""]);
+  const escapeCell = (value) => `"${String(value).replace(/"/g, '""')}"`;
+  const csv = [columns, ...rows].map((row) => row.map(escapeCell).join(";")).join("\r\n");
+  const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "sleep_diary.csv";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  setMessage("Файл sleep_diary.csv подготовлен для скачивания.", "success");
+}
+
+$("exportCsv").addEventListener("click", exportCsv);
+
 loadEntries();
+loadGoal();
+loadReminder();
 resetForm();
 renderEntries();
 renderStatistics();
+renderGoalProgress();
+window.setInterval(checkReminder, 30000);

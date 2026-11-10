@@ -1,0 +1,76 @@
+name: CI - Code Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Sleep Diary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate required files
+        run: |
+          test -s index.html
+          test -s style.css
+          test -s script.js
+          echo "Required application files are present."
+
+      - name: Validate HTML entry points
+        run: |
+          grep -q 'id="sleepForm"' index.html
+          grep -q 'id="entries"' index.html
+          grep -q 'id="statistics"' index.html
+          echo "Required interface sections are present."
+
+      - name: Check JavaScript syntax
+        run: node --check script.js
+
+      - name: Validate SQLite schema and seed data
+        run: |
+          python3 - <<'PY'
+          import sqlite3
+          from pathlib import Path
+
+          db = sqlite3.connect(":memory:")
+          db.executescript(Path("database/schema.sql").read_text(encoding="utf-8"))
+          db.executescript(Path("database/seed_data.sql").read_text(encoding="utf-8"))
+
+          assert db.execute("SELECT COUNT(*) FROM sleep_entries").fetchone()[0] == 5
+          assert db.execute("SELECT COUNT(*) FROM app_settings").fetchone()[0] == 1
+
+          def must_reject(label, sql):
+              try:
+                  db.execute(sql)
+              except sqlite3.IntegrityError:
+                  print(f"PASS: rejected invalid {label}")
+                  return
+              raise AssertionError(f"Invalid {label} was accepted")
+
+          must_reject("sleep quality", """
+              INSERT INTO sleep_entries(sleep_date, bed_time, wake_time, sleep_quality)
+              VALUES ('2026-11-06', '22:00', '06:00', 6)
+          """)
+          must_reject("bedtime", """
+              INSERT INTO sleep_entries(sleep_date, bed_time, wake_time, sleep_quality)
+              VALUES ('2026-11-06', '25:90', '06:00', 3)
+          """)
+          must_reject("reminder time", """
+              UPDATE app_settings SET reminder_time = '25:90' WHERE settings_id = 1
+          """)
+          must_reject("sleep goal", """
+              UPDATE app_settings SET target_sleep_minutes = 975 WHERE settings_id = 1
+          """)
+          print("SQLite schema and seed data are valid.")
+          PY
+
+      - name: Check whitespace errors
+        run: git diff --check

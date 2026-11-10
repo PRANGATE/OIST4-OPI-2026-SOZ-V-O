@@ -27,6 +27,7 @@
     <section id="diary" class="panel">
       <div class="section-heading">
         <div><p class="eyebrow">Ежедневные записи</p><h2>Дневник сна</h2></div>
+        <button id="exportCsv" class="button secondary" type="button">Экспорт в CSV</button>
       </div>
       <form id="sleepForm" class="sleep-form">
         <label>Дата<input id="sleepDate" type="date" required></label>
@@ -59,6 +60,14 @@
         <button class="button primary" type="submit">Сохранить цель</button>
       </form>
       <div id="goalProgress" class="goal-progress"></div>
+      <hr class="settings-divider">
+      <h2>Напоминание о времени сна</h2>
+      <form id="reminderForm" class="goal-form reminder-form">
+        <label>Время напоминания<input id="reminderTime" type="time" value="22:30" required></label>
+        <label class="reminder-toggle"><input id="reminderEnabled" type="checkbox"> Включить напоминание</label>
+        <button class="button primary" type="submit">Сохранить напоминание</button>
+      </form>
+      <p class="hint">Напоминание срабатывает, пока страница дневника открыта. Для системного уведомления разрешите уведомления браузера.</p>
     </section>
   </main>
   <footer class="container footer">Дневник сна · Учебный проект · Вариант 25</footer>
