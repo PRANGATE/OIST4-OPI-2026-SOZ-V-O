@@ -52,7 +52,12 @@ function saveEntries() {
 
 function resetForm() {
   form.reset();
-  $("sleepDate").value = new Date().toISOString().slice(0, 10);
+  
+  // ИСПРАВЛЕНИЕ: Берем локальную дату, чтобы не подставлялось "вчера" из-за часового пояса
+  const now = new Date();
+  const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  $("sleepDate").value = localDate;
+  
   $("quality").value = "3";
   editingId = null;
   $("cancelEdit").hidden = true;
@@ -324,14 +329,23 @@ function checkReminder() {
 
 function renderStatistics() {
   const days = Number($("period").value);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const start = new Date(today);
+  
+  // ИСПРАВЛЕНИЕ: Отталкиваемся от самой поздней даты в записях, а не от даты компьютера
+  let referenceDate = new Date();
+  if (entries.length > 0) {
+    const maxDateStr = entries.reduce((max, e) => e.date > max ? e.date : max, entries[0].date);
+    referenceDate = new Date(`${maxDateStr}T00:00:00`);
+  }
+  referenceDate.setHours(0, 0, 0, 0);
+
+  const start = new Date(referenceDate);
   start.setDate(start.getDate() - (days - 1));
+  
   const filtered = entries.filter((entry) => {
     const date = new Date(`${entry.date}T00:00:00`);
-    return date >= start && date <= today;
+    return date >= start && date <= referenceDate;
   });
+
   const totalMinutes = filtered.reduce((sum, entry) => sum + entry.duration, 0);
   const averageMinutes = filtered.length ? Math.round(totalMinutes / filtered.length) : 0;
   const averageQuality = filtered.length
@@ -369,7 +383,8 @@ function renderStatistics() {
   chart.append(heading);
   const bars = document.createElement("div");
   bars.className = "chart-bars";
-  filtered.sort((a, b) => a.date.localeCompare(b.date)).forEach((entry) => {
+  
+  [...filtered].sort((a, b) => a.date.localeCompare(b.date)).forEach((entry) => {
     const item = document.createElement("div");
     item.className = "chart-item";
     const value = document.createElement("small");
