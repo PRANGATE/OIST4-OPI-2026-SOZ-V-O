@@ -253,6 +253,71 @@ $("goalForm").addEventListener("submit", (event) => {
   setMessage("Цель сна сохранена.", "success");
 });
 
+
+const REMINDER_KEY = "sleep-diary.reminder.v1";
+let reminderSettings = { enabled: false, time: "22:30" };
+
+function loadReminder() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(REMINDER_KEY) || "null");
+    if (saved && typeof saved.enabled === "boolean" && /^([01]\\d|2[0-3]):[0-5]\\d$/.test(saved.time)) {
+      reminderSettings = saved;
+    }
+  } catch (error) {
+    setMessage("Не удалось прочитать настройки напоминания.", "error");
+  }
+  $("reminderTime").value = reminderSettings.time;
+  $("reminderEnabled").checked = reminderSettings.enabled;
+}
+
+$("reminderForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const time = $("reminderTime").value;
+  const enabled = $("reminderEnabled").checked;
+  if (!time) {
+    setMessage("Укажите время напоминания.", "error");
+    return;
+  }
+  if (enabled) {
+    if (!("Notification" in window)) {
+      setMessage("Этот браузер не поддерживает системные уведомления.", "error");
+      $("reminderEnabled").checked = false;
+      return;
+    }
+    if (Notification.permission === "default") {
+      await Notification.requestPermission();
+    }
+    if (Notification.permission !== "granted") {
+      setMessage("Разрешите уведомления браузера, чтобы получать напоминания.", "error");
+      $("reminderEnabled").checked = false;
+      return;
+    }
+  }
+  reminderSettings = { enabled, time };
+  try {
+    localStorage.setItem(REMINDER_KEY, JSON.stringify(reminderSettings));
+  } catch (error) {
+    setMessage("Не удалось сохранить настройки напоминания.", "error");
+    return;
+  }
+  setMessage(enabled ? `Напоминание установлено на ${time}.` : "Напоминание отключено.", "success");
+});
+
+function checkReminder() {
+  if (!reminderSettings.enabled || !("Notification" in window) || Notification.permission !== "granted") return;
+  const now = new Date();
+  const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const today = now.toLocaleDateString("en-CA");
+  const firedKey = `sleep-diary.reminder-fired.${today}`;
+  if (currentTime === reminderSettings.time && localStorage.getItem(firedKey) !== "yes") {
+    new Notification("Время готовиться ко сну", {
+      body: "Пора завершать дела и готовиться к отдыху.",
+      tag: "sleep-diary-bedtime"
+    });
+    localStorage.setItem(firedKey, "yes");
+  }
+}
+
 function renderStatistics() {
   const days = Number($("period").value);
   const today = new Date();
@@ -348,7 +413,9 @@ $("exportCsv").addEventListener("click", exportCsv);
 
 loadEntries();
 loadGoal();
+loadReminder();
 resetForm();
 renderEntries();
 renderStatistics();
 renderGoalProgress();
+window.setInterval(checkReminder, 30000);
