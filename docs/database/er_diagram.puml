@@ -1,0 +1,42 @@
+@startuml
+hide circle
+skinparam linetype ortho
+skinparam entity {
+  BackgroundColor #F5F8F5
+  BorderColor #356B55
+  FontColor #20352D
+}
+
+entity "sleep_entries" as SleepEntries {
+  * sleep_entry_id : INTEGER <<PK>>
+  --
+  sleep_date : TEXT
+  bed_time : TEXT
+  wake_time : TEXT
+  sleep_quality : INTEGER
+  notes : TEXT
+  created_at : TEXT
+  updated_at : TEXT
+}
+
+entity "app_settings" as AppSettings {
+  * settings_id : INTEGER <<PK, singleton=1>>
+  --
+  target_sleep_minutes : INTEGER
+  reminder_enabled : INTEGER
+  reminder_time : TEXT
+  updated_at : TEXT
+}
+
+note right of SleepEntries
+  Одна строка — одна ночь сна.
+  Длительность вычисляется из
+  bed_time и wake_time.
+end note
+
+note right of AppSettings
+  Одна общая строка настроек
+  текущего браузерного дневника.
+end note
+
+@enduml
