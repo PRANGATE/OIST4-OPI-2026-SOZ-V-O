@@ -165,6 +165,7 @@ form.addEventListener("submit", (event) => {
     id: editingId || (window.crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
     date, bedTime, wakeTime, quality, notes, duration
   };
+  const wasEditing = Boolean(editingId);
   const previous = entries;
   if (editingId) {
     entries = entries.map((entry) => entry.id === editingId ? record : entry);
@@ -177,7 +178,7 @@ form.addEventListener("submit", (event) => {
   }
   renderEntries();
   resetForm();
-  setMessage(editingId ? "Изменения сохранены." : "Запись о сне добавлена.", "success");
+  setMessage(wasEditing ? "Изменения сохранены." : "Запись о сне добавлена.", "success");
 });
 
 $("cancelEdit").addEventListener("click", () => {
