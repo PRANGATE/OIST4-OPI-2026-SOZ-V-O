@@ -260,8 +260,11 @@ let reminderSettings = { enabled: false, time: "22:30" };
 function loadReminder() {
   try {
     const saved = JSON.parse(localStorage.getItem(REMINDER_KEY) || "null");
-    if (saved && typeof saved.enabled === "boolean" && /^([01]\\d|2[0-3]):[0-5]\\d$/.test(saved.time)) {
-      reminderSettings = saved;
+    if (saved && typeof saved.enabled === "boolean" && typeof saved.time === "string") {
+      const [hours, minutes] = saved.time.split(":").map(Number);
+      if (Number.isInteger(hours) && hours >= 0 && hours <= 23 && Number.isInteger(minutes) && minutes >= 0 && minutes <= 59) {
+        reminderSettings = saved;
+      }
     }
   } catch (error) {
     setMessage("Не удалось прочитать настройки напоминания.", "error");
@@ -307,14 +310,18 @@ function checkReminder() {
   if (!reminderSettings.enabled || !("Notification" in window) || Notification.permission !== "granted") return;
   const now = new Date();
   const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  const today = now.toLocaleDateString("en-CA");
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const firedKey = `sleep-diary.reminder-fired.${today}`;
-  if (currentTime === reminderSettings.time && localStorage.getItem(firedKey) !== "yes") {
-    new Notification("Время готовиться ко сну", {
-      body: "Пора завершать дела и готовиться к отдыху.",
-      tag: "sleep-diary-bedtime"
-    });
-    localStorage.setItem(firedKey, "yes");
+  try {
+    if (currentTime === reminderSettings.time && localStorage.getItem(firedKey) !== "yes") {
+      new Notification("Время готовиться ко сну", {
+        body: "Пора завершать дела и готовиться к отдыху.",
+        tag: "sleep-diary-bedtime"
+      });
+      localStorage.setItem(firedKey, "yes");
+    }
+  } catch (error) {
+    setMessage("Не удалось показать или сохранить отметку напоминания.", "error");
   }
 }
 
